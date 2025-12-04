@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { VERSE_CHALLENGES } from '../constants';
 import { BookOpen, CheckCircle, Timer, XCircle, ArrowLeft, AlertTriangle, Lock, Unlock, Play, Star, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -49,6 +49,15 @@ const VerseGame: React.FC<Props> = ({ updateScore, onComplete }) => {
   // Filter questions for the active level
   const activeQuestions = VERSE_CHALLENGES.filter(q => q.level === selectedLevel);
   const challenge = activeQuestions[currentQuestionIndex];
+
+  // Memoize shuffled options to ensure they stay consistent during re-renders (like timer ticks)
+  // but change when the challenge changes.
+  const currentOptions = useMemo(() => {
+    if (challenge?.options) {
+      return [...challenge.options].sort(() => Math.random() - 0.5);
+    }
+    return [];
+  }, [challenge]);
 
   useEffect(() => {
      if (isGlobalComplete) {
@@ -167,7 +176,7 @@ const VerseGame: React.FC<Props> = ({ updateScore, onComplete }) => {
             {challenge.text?.replace('____', '.....')}
           </p>
           <div className="grid grid-cols-2 gap-4">
-            {challenge.options?.map(opt => (
+            {currentOptions.map(opt => (
               <button 
                 key={opt}
                 onClick={() => {
@@ -192,7 +201,7 @@ const VerseGame: React.FC<Props> = ({ updateScore, onComplete }) => {
           </p>
           <p className="text-sm text-gray-500 mb-4">الشاهد فين؟</p>
           <div className="space-y-2">
-            {challenge.options?.map(opt => (
+            {currentOptions.map(opt => (
               <button 
                 key={opt}
                 onClick={() => {
