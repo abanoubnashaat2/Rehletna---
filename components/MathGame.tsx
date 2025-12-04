@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { MATH_QUESTIONS } from '../constants';
 import { Calculator, Check, Timer, Award, CheckCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { playClick, playSuccess, playError, playCelebration } from '../utils/sound';
 
 interface Props {
   updateScore: (points: number) => void;
@@ -45,6 +46,7 @@ const MathGame: React.FC<Props> = ({ updateScore, onComplete }) => {
     if (timeLeft <= 0) {
       setIsTimerRunning(false);
       setRevealed(true);
+      playError();
       return;
     }
 
@@ -62,16 +64,20 @@ const MathGame: React.FC<Props> = ({ updateScore, onComplete }) => {
     if (parseInt(userAnswer) === currentQ.answer) {
       setIsCorrect(true);
       updateScore(5);
+      playSuccess();
     } else {
       setIsCorrect(false);
       updateScore(-2);
+      playError();
     }
   };
 
   const handleNext = () => {
+    playClick();
     const nextIndex = currentIndex + 1;
     setCurrentIndex(nextIndex);
     if (nextIndex >= MATH_QUESTIONS.length) {
+      playCelebration();
       onComplete();
     }
   };
@@ -87,6 +93,7 @@ const MathGame: React.FC<Props> = ({ updateScore, onComplete }) => {
             <p className="text-gray-600 mb-6">لقد أنهيت قسم حسبة برما.</p>
             <Link 
               to="/" 
+              onClick={playClick}
               className="block w-full py-3 bg-blue-600 text-white rounded-xl font-bold shadow hover:bg-blue-700 transition"
             >
               فتح القسم التالي

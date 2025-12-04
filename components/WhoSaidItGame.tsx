@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { QUOTE_CHALLENGES } from '../constants';
 import { MessageCircle, ArrowLeft, User, Quote, CheckCircle, XCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { playClick, playSuccess, playError, playCelebration } from '../utils/sound';
 
 interface Props {
   updateScore: (points: number) => void;
@@ -37,15 +38,19 @@ const WhoSaidItGame: React.FC<Props> = ({ updateScore, onComplete }) => {
 
     if (option === challenge.answer) {
       updateScore(1);
+      playSuccess();
     } else {
       updateScore(-1);
+      playError();
     }
   };
 
   const handleNext = () => {
+    playClick();
     const nextIndex = currentIndex + 1;
     setCurrentIndex(nextIndex);
     if (nextIndex >= QUOTE_CHALLENGES.length) {
+      playCelebration();
       onComplete();
     }
   };
@@ -61,6 +66,7 @@ const WhoSaidItGame: React.FC<Props> = ({ updateScore, onComplete }) => {
             <p className="text-gray-600 mb-6">لقد أنهيت قسم من القائل.</p>
             <Link 
               to="/" 
+              onClick={playClick}
               className="block w-full py-3 bg-blue-600 text-white rounded-xl font-bold shadow hover:bg-blue-700 transition"
             >
               فتح القسم التالي

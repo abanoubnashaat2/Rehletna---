@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { playClick, playCelebration } from '../utils/sound';
 
 const SpinWheel: React.FC = () => {
   const [spinning, setSpinning] = useState(false);
@@ -20,6 +21,7 @@ const SpinWheel: React.FC = () => {
   const spin = () => {
     if (spinning) return;
     
+    playClick();
     setSpinning(true);
     setResult(null);
 
@@ -36,6 +38,7 @@ const SpinWheel: React.FC = () => {
       // Adjusting index calculation for top pointer
       const index = Math.floor(((360 - (normalizedRotation % 360)) % 360) / sliceAngle);
       setResult(items[index]?.text || "حظ سعيد");
+      playCelebration();
     }, 3000);
   };
 

@@ -9,6 +9,7 @@ import MathGame from './components/MathGame';
 import SpinWheel from './components/SpinWheel';
 import LinkGame from './components/LinkGame';
 import WhoSaidItGame from './components/WhoSaidItGame';
+import { playClick } from './utils/sound';
 
 const App: React.FC = () => {
   // Global State for Single Player Score
@@ -63,7 +64,11 @@ const App: React.FC = () => {
         );
       }
       return (
-        <Link to={path} className={`flex items-center space-x-3 space-x-reverse p-2 rounded-lg ${isActive(path)}`}>
+        <Link 
+          to={path} 
+          onClick={playClick}
+          className={`flex items-center space-x-3 space-x-reverse p-2 rounded-lg ${isActive(path)}`}
+        >
           <Icon size={20} /> <span>{label}</span>
         </Link>
       );
@@ -71,7 +76,7 @@ const App: React.FC = () => {
 
     return (
       <div className="fixed bottom-0 w-full bg-white border-t border-gray-200 flex justify-around py-3 pb-safe z-50 md:static md:flex-col md:h-screen md:w-64 md:border-r md:border-t-0 md:justify-start md:p-4 md:space-y-2">
-        <Link to="/" className={`flex flex-col items-center p-2 rounded-lg ${isActive('/')}`}>
+        <Link to="/" onClick={playClick} className={`flex flex-col items-center p-2 rounded-lg ${isActive('/')}`}>
           <Home size={24} />
           <span className="text-xs mt-1 md:text-sm">الرئيسية</span>
         </Link>
@@ -80,7 +85,7 @@ const App: React.FC = () => {
            <span className="text-xs mt-1 font-bold">{score}</span>
         </div>
         <button 
-          onClick={() => setIsSidebarOpen(true)} 
+          onClick={() => { setIsSidebarOpen(true); playClick(); }} 
           className="flex flex-col items-center p-2 rounded-lg text-gray-600 md:hidden"
         >
           <Menu size={24} />
@@ -118,36 +123,36 @@ const App: React.FC = () => {
       >
         <div className="p-4 flex justify-between items-center border-b">
           <h2 className="font-bold text-xl text-blue-800">رحلتنا</h2>
-          <button onClick={() => setIsSidebarOpen(false)}><X size={24} /></button>
+          <button onClick={() => { setIsSidebarOpen(false); playClick(); }}><X size={24} /></button>
         </div>
         <div className="p-4 space-y-4">
           <p className="text-sm text-gray-400 mb-2">أكمل المراحل لفتح التالية</p>
           {/* We only show links that are unlocked or the immediate next one */}
-          <Link to="/riddles" onClick={() => setIsSidebarOpen(false)} className="flex items-center space-x-3 space-x-reverse text-gray-700 p-2 hover:bg-gray-100 rounded">
+          <Link to="/riddles" onClick={() => { setIsSidebarOpen(false); playClick(); }} className="flex items-center space-x-3 space-x-reverse text-gray-700 p-2 hover:bg-gray-100 rounded">
             <Brain className="text-purple-500" /> <span>الفوازير والألغاز</span>
           </Link>
           
-          {unlockedStage >= 1 && <Link to="/verses" onClick={() => setIsSidebarOpen(false)} className="flex items-center space-x-3 space-x-reverse text-gray-700 p-2 hover:bg-gray-100 rounded">
+          {unlockedStage >= 1 && <Link to="/verses" onClick={() => { setIsSidebarOpen(false); playClick(); }} className="flex items-center space-x-3 space-x-reverse text-gray-700 p-2 hover:bg-gray-100 rounded">
             <BookOpen className="text-green-500" /> <span>مسابقات الآيات</span>
           </Link>}
           
-          {unlockedStage >= 2 && <Link to="/links" onClick={() => setIsSidebarOpen(false)} className="flex items-center space-x-3 space-x-reverse text-gray-700 p-2 hover:bg-gray-100 rounded">
+          {unlockedStage >= 2 && <Link to="/links" onClick={() => { setIsSidebarOpen(false); playClick(); }} className="flex items-center space-x-3 space-x-reverse text-gray-700 p-2 hover:bg-gray-100 rounded">
             <Link2 className="text-cyan-500" /> <span>الرابط العجيب</span>
           </Link>}
 
-          {unlockedStage >= 3 && <Link to="/quotes" onClick={() => setIsSidebarOpen(false)} className="flex items-center space-x-3 space-x-reverse text-gray-700 p-2 hover:bg-gray-100 rounded">
+          {unlockedStage >= 3 && <Link to="/quotes" onClick={() => { setIsSidebarOpen(false); playClick(); }} className="flex items-center space-x-3 space-x-reverse text-gray-700 p-2 hover:bg-gray-100 rounded">
             <MessageCircle className="text-indigo-500" /> <span>من القائل؟</span>
           </Link>}
 
-          {unlockedStage >= 4 && <Link to="/math" onClick={() => setIsSidebarOpen(false)} className="flex items-center space-x-3 space-x-reverse text-gray-700 p-2 hover:bg-gray-100 rounded">
+          {unlockedStage >= 4 && <Link to="/math" onClick={() => { setIsSidebarOpen(false); playClick(); }} className="flex items-center space-x-3 space-x-reverse text-gray-700 p-2 hover:bg-gray-100 rounded">
             <Settings className="text-orange-500" /> <span>حسبة برما</span>
           </Link>}
 
-          {unlockedStage >= 5 && <Link to="/photohunt" onClick={() => setIsSidebarOpen(false)} className="flex items-center space-x-3 space-x-reverse text-gray-700 p-2 hover:bg-gray-100 rounded">
+          {unlockedStage >= 5 && <Link to="/photohunt" onClick={() => { setIsSidebarOpen(false); playClick(); }} className="flex items-center space-x-3 space-x-reverse text-gray-700 p-2 hover:bg-gray-100 rounded">
             <Camera className="text-blue-500" /> <span>أحكام التصوير</span>
           </Link>}
 
-          {unlockedStage >= 6 && <Link to="/wheel" onClick={() => setIsSidebarOpen(false)} className="flex items-center space-x-3 space-x-reverse text-gray-700 p-2 hover:bg-gray-100 rounded">
+          {unlockedStage >= 6 && <Link to="/wheel" onClick={() => { setIsSidebarOpen(false); playClick(); }} className="flex items-center space-x-3 space-x-reverse text-gray-700 p-2 hover:bg-gray-100 rounded">
             <RefreshCw className="text-pink-500" /> <span>عجلة الحظ</span>
           </Link>}
         </div>

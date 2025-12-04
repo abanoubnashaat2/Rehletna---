@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { RIDDLES } from '../constants';
 import { HelpCircle, Send, ArrowLeft, CheckCircle, AlertCircle, Smile } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { playClick, playSuccess, playError, playCelebration } from '../utils/sound';
 
 interface Props {
   updateScore: (points: number) => void;
@@ -58,10 +59,12 @@ const RiddleGame: React.FC<Props> = ({ updateScore, onComplete }) => {
       setShowAnswer(true);
       updateScore(5);
       setPointsChange(5);
+      playSuccess();
     } else {
       setFeedback('error');
       updateScore(-2); // Penalty
       setPointsChange(-2);
+      playError();
       
       setTimeout(() => {
         setFeedback('none');
@@ -71,16 +74,19 @@ const RiddleGame: React.FC<Props> = ({ updateScore, onComplete }) => {
   };
 
   const handleNext = () => {
+    playClick();
     const nextIndex = currentRiddleIndex + 1;
     setCurrentRiddleIndex(nextIndex);
     
     if (nextIndex >= RIDDLES.length) {
+      playCelebration();
       onComplete();
     }
   };
 
   const handleUseHint = () => {
     if (!showHint) {
+      playClick();
       setShowHint(true);
       updateScore(-3);
       setPointsChange(-3);
@@ -99,6 +105,7 @@ const RiddleGame: React.FC<Props> = ({ updateScore, onComplete }) => {
             <p className="text-gray-600 mb-6">لقد أنهيت قسم الفوازير بالكامل.</p>
             <Link 
               to="/" 
+              onClick={playClick}
               className="block w-full py-3 bg-blue-600 text-white rounded-xl font-bold shadow hover:bg-blue-700 transition"
             >
               العودة للقائمة لفتح القسم التالي

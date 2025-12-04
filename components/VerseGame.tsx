@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { VERSE_CHALLENGES } from '../constants';
 import { BookOpen, CheckCircle, Timer, XCircle, ArrowLeft, AlertTriangle, Lock, Unlock, Play, Star, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { playClick, playSuccess, playError, playCelebration } from '../utils/sound';
 
 interface Props {
   updateScore: (points: number) => void;
@@ -83,6 +84,7 @@ const VerseGame: React.FC<Props> = ({ updateScore, onComplete }) => {
   // --- Handlers ---
 
   const handleLevelSelect = (level: number) => {
+    playClick();
     if (level <= maxUnlockedLevel) {
       setSelectedLevel(level);
       // Resume from last progress + 1
@@ -92,6 +94,7 @@ const VerseGame: React.FC<Props> = ({ updateScore, onComplete }) => {
       if (nextIndex >= questionsInLevel) {
          // Level already finished
          setViewState('completed');
+         playCelebration();
       } else {
          setCurrentQuestionIndex(nextIndex);
          setViewState('game');
@@ -109,6 +112,7 @@ const VerseGame: React.FC<Props> = ({ updateScore, onComplete }) => {
   };
 
   const handleNext = () => {
+    playClick();
     updateProgress(); // Save that we finished this question
 
     if (currentQuestionIndex < activeQuestions.length - 1) {
@@ -119,9 +123,11 @@ const VerseGame: React.FC<Props> = ({ updateScore, onComplete }) => {
       if (selectedLevel === maxUnlockedLevel) {
          if (maxUnlockedLevel < 3) {
             setMaxUnlockedLevel(prev => prev + 1);
+            playCelebration();
          } else {
             // All levels done!
             setViewState('all_completed');
+            playCelebration();
             onComplete();
          }
       }
@@ -131,12 +137,14 @@ const VerseGame: React.FC<Props> = ({ updateScore, onComplete }) => {
   const handleCorrect = () => {
     setShowResult(true);
     updateScore(3);
+    playSuccess();
   };
 
   const handleWrong = () => {
     updateScore(-1);
     setErrorMsg("إجابة خاطئة (خصم نقطة)");
     setTimeout(() => setErrorMsg(null), 1500);
+    playError();
   };
 
   const checkArrange = () => {
@@ -216,7 +224,7 @@ const VerseGame: React.FC<Props> = ({ updateScore, onComplete }) => {
              {available.map(w => (
                <button 
                  key={w}
-                 onClick={() => setArrangedWords([...arrangedWords, w])}
+                 onClick={() => { setArrangedWords([...arrangedWords, w]); playClick(); }}
                  className="bg-white border border-gray-300 px-4 py-2 rounded-lg shadow-sm hover:bg-gray-50 font-bold text-gray-700"
                >
                  {w}
@@ -224,8 +232,8 @@ const VerseGame: React.FC<Props> = ({ updateScore, onComplete }) => {
              ))}
            </div>
            <div className="flex justify-center gap-2">
-            <button onClick={() => setArrangedWords([])} className="text-red-500 text-sm">إعادة</button>
-            <button onClick={checkArrange} className="bg-blue-600 text-white px-4 py-1 rounded">تأكيد</button>
+            <button onClick={() => { setArrangedWords([]); playClick(); }} className="text-red-500 text-sm">إعادة</button>
+            <button onClick={() => { checkArrange(); playClick(); }} className="bg-blue-600 text-white px-4 py-1 rounded">تأكيد</button>
            </div>
         </div>
       );
@@ -245,6 +253,7 @@ const VerseGame: React.FC<Props> = ({ updateScore, onComplete }) => {
             <p className="text-gray-600 mb-6">لقد أنهيت جميع مستويات الآيات.</p>
             <Link 
               to="/" 
+              onClick={playClick}
               className="block w-full py-3 bg-blue-600 text-white rounded-xl font-bold shadow hover:bg-blue-700 transition"
             >
               فتح القسم التالي
@@ -340,7 +349,7 @@ const VerseGame: React.FC<Props> = ({ updateScore, onComplete }) => {
                )}
                
                <button 
-                 onClick={() => setViewState('menu')}
+                 onClick={() => { setViewState('menu'); playClick(); }}
                  className="w-full py-3 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition"
                >
                  العودة لقائمة المستويات
@@ -364,7 +373,7 @@ const VerseGame: React.FC<Props> = ({ updateScore, onComplete }) => {
           {/* Header with Timer */}
           <div className="flex justify-between items-center mb-6 border-b pb-4">
              <div className="flex items-center gap-2">
-                <button onClick={() => setViewState('menu')} className="text-gray-400 hover:text-gray-600">
+                <button onClick={() => { setViewState('menu'); playClick(); }} className="text-gray-400 hover:text-gray-600">
                    <ArrowLeft className="rotate-180" size={24} />
                 </button>
                 <div className="bg-green-100 p-2 rounded-full text-green-600"><BookOpen size={20} /></div>

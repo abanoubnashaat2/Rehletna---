@@ -3,6 +3,7 @@ import { SCAVENGER_ITEMS } from '../constants';
 import { ScavengerItem } from '../types';
 import { Camera, Check, Trash2, Award, ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { playClick, playSuccess, playCelebration } from '../utils/sound';
 
 interface Props {
   updateScore: (points: number) => void;
@@ -36,11 +37,13 @@ const PhotoHunt: React.FC<Props> = ({ updateScore, onComplete }) => {
       // Reset logic
       setImagePreview(null);
       setSelectedItem(null);
+      playSuccess();
       alert(`تم إضافة ${selectedItem.points} نقطة لرصيدك!`);
     }
   };
 
   const handleFinishSection = () => {
+    playCelebration();
     onComplete();
   };
 
@@ -48,7 +51,7 @@ const PhotoHunt: React.FC<Props> = ({ updateScore, onComplete }) => {
     return (
       <div className="p-4 h-full flex flex-col">
         <button 
-          onClick={() => { setSelectedItem(null); setImagePreview(null); }}
+          onClick={() => { setSelectedItem(null); setImagePreview(null); playClick(); }}
           className="mb-4 text-sm text-gray-500 hover:text-gray-800 self-start"
         >
           ← العودة للقائمة
@@ -127,7 +130,7 @@ const PhotoHunt: React.FC<Props> = ({ updateScore, onComplete }) => {
           return (
             <button 
               key={item.id}
-              onClick={() => !isDone && setSelectedItem(item)}
+              onClick={() => { if(!isDone) { setSelectedItem(item); playClick(); } }}
               disabled={isDone}
               className={`p-4 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center text-right transition ${isDone ? 'bg-green-50 opacity-70' : 'bg-white hover:bg-blue-50'}`}
             >

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { LINK_CHALLENGES } from '../constants';
 import { Link2, ArrowLeft, CheckCircle, AlertCircle, Award } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { playClick, playSuccess, playError, playCelebration } from '../utils/sound';
 
 interface Props {
   updateScore: (points: number) => void;
@@ -38,18 +39,22 @@ const LinkGame: React.FC<Props> = ({ updateScore, onComplete }) => {
       setIsCorrect(true);
       updateScore(1);
       setFeedback("رائع! إجابة صحيحة");
+      playSuccess();
     } else {
       setIsCorrect(false);
       updateScore(-1);
       setFeedback("إجابة خاطئة");
+      playError();
     }
     setShowResult(true);
   };
 
   const handleNext = () => {
+    playClick();
     const nextIndex = currentIndex + 1;
     setCurrentIndex(nextIndex);
     if (nextIndex >= LINK_CHALLENGES.length) {
+      playCelebration();
       onComplete();
     }
   };
@@ -65,6 +70,7 @@ const LinkGame: React.FC<Props> = ({ updateScore, onComplete }) => {
             <p className="text-gray-600 mb-6">لقد أنهيت قسم الرابط العجيب.</p>
             <Link 
               to="/" 
+              onClick={playClick}
               className="block w-full py-3 bg-blue-600 text-white rounded-xl font-bold shadow hover:bg-blue-700 transition"
             >
               فتح القسم التالي
