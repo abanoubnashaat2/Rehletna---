@@ -1,0 +1,7 @@
+{
+  "name": "Rehletna - رحلتنا",
+  "description": "تطبيق مسابقات دينية وترفيهية للرحلات، يعمل بدون إنترنت.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
