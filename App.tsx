@@ -53,7 +53,8 @@ const App: React.FC = () => {
     const isActive = (path: string) => location.pathname === path ? 'text-blue-600 bg-blue-50' : 'text-gray-600 hover:bg-gray-50';
     
     // Helper to check if link is locked for sidebar
-    const isLocked = (stageIndex: number) => stageIndex > unlockedStage;
+    // Stage 6 (Wheel) is always unlocked now
+    const isLocked = (stageIndex: number) => stageIndex !== 6 && stageIndex > unlockedStage;
 
     const NavItem = ({ path, icon: Icon, label, stageIdx }: { path: string, icon: any, label: string, stageIdx: number }) => {
       if (isLocked(stageIdx)) {
@@ -152,9 +153,10 @@ const App: React.FC = () => {
             <Camera className="text-blue-500" /> <span>أحكام التصوير</span>
           </Link>}
 
-          {unlockedStage >= 6 && <Link to="/wheel" onClick={() => { setIsSidebarOpen(false); playClick(); }} className="flex items-center space-x-3 space-x-reverse text-gray-700 p-2 hover:bg-gray-100 rounded">
+          {/* Wheel is always open */}
+          <Link to="/wheel" onClick={() => { setIsSidebarOpen(false); playClick(); }} className="flex items-center space-x-3 space-x-reverse text-gray-700 p-2 hover:bg-gray-100 rounded">
             <RefreshCw className="text-pink-500" /> <span>عجلة الحظ</span>
-          </Link>}
+          </Link>
         </div>
       </div>
     </div>
@@ -188,7 +190,7 @@ const App: React.FC = () => {
               <Route path="/quotes" element={<WhoSaidItGame updateScore={updateScore} onComplete={() => completeStage(3)} />} />
               <Route path="/math" element={<MathGame updateScore={updateScore} onComplete={() => completeStage(4)} />} />
               <Route path="/photohunt" element={<PhotoHunt updateScore={updateScore} onComplete={() => completeStage(5)} />} />
-              <Route path="/wheel" element={<SpinWheel />} />
+              <Route path="/wheel" element={<SpinWheel updateScore={updateScore} />} />
             </Routes>
           </div>
         </main>

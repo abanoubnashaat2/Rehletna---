@@ -10,7 +10,8 @@ interface DashboardProps {
 const Dashboard: React.FC<DashboardProps> = ({ score, unlockedStage }) => {
 
   const DashboardItem = ({ to, icon: Icon, title, color, stageIdx, span = 1 }: any) => {
-    const isLocked = stageIdx > unlockedStage;
+    // Stage 6 (Wheel) is exception, always unlocked
+    const isLocked = stageIdx !== 6 && stageIdx > unlockedStage;
     const isCompleted = stageIdx < unlockedStage;
 
     if (isLocked) {
