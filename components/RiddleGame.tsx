@@ -52,9 +52,39 @@ const RiddleGame: React.FC<Props> = ({ updateScore, onComplete }) => {
       .replace(/[^\w\s\u0621-\u064A]/g, '');
   };
 
+  const isAnswerCorrect = (user: string, correct: string) => {
+    const normUser = normalizeArabic(user);
+    const normCorrect = normalizeArabic(correct);
+
+    if (!normUser) return false;
+
+    // 1. تطابق تام
+    if (normUser === normCorrect) return true;
+
+    // 2. تجاهل "ال" التعريف
+    const stripAl = (s: string) => s.startsWith('ال') ? s.slice(2) : s;
+    const userNoAl = stripAl(normUser);
+    const correctNoAl = stripAl(normCorrect);
+    
+    if (userNoAl === correctNoAl) return true;
+
+    // 3. تطابق جزئي (الاحتواء)
+    // شرط: أن يكون النص المدخل 3 حروف على الأقل لتجنب التطابق العشوائي
+    if (userNoAl.length >= 3) {
+       // الحالة أ: إجابة المستخدم جزء من الإجابة الصحيحة (مثال: كتب "موسى" والإجابة "موسى النبي")
+       if (normCorrect.includes(userNoAl)) return true;
+       
+       // الحالة ب: الإجابة الصحيحة جزء مما كتبه المستخدم (مثال: كتب "القديس توما" والإجابة "توما")
+       // نستخدم correctNoAl للتأكد من مطابقة جوهر الكلمة
+       if (normUser.includes(correctNoAl)) return true;
+    }
+    
+    return false;
+  };
+
   const handleCheckAnswer = (e: React.FormEvent) => {
     e.preventDefault();
-    if (normalizeArabic(userAnswer) === normalizeArabic(riddle.answer)) {
+    if (isAnswerCorrect(userAnswer, riddle.answer)) {
       setFeedback('success');
       setShowAnswer(true);
       updateScore(5);
