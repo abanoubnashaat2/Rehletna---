@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ContentManager, AuthManager } from '../utils/content';
-import { ArrowLeft, Plus, Edit, Trash2, Save, X, Brain, Calculator, BookOpen, Link2, MessageCircle, Camera, LogOut } from 'lucide-react';
+import { ArrowLeft, Plus, Edit, Trash2, Save, X, Brain, Calculator, BookOpen, Link2, MessageCircle, Camera, LogOut, ArrowUp, ArrowDown } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { playClick } from '../utils/sound';
 
@@ -53,6 +53,17 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout }) => {
       const newData = data.filter(item => item.id !== id);
       saveData(newData);
     }
+  };
+
+  const handleMove = (index: number, direction: 'up' | 'down') => {
+    playClick();
+    const newData = [...data];
+    if (direction === 'up' && index > 0) {
+      [newData[index], newData[index - 1]] = [newData[index - 1], newData[index]];
+    } else if (direction === 'down' && index < newData.length - 1) {
+      [newData[index], newData[index + 1]] = [newData[index + 1], newData[index]];
+    }
+    saveData(newData);
   };
 
   const handleEdit = (item: any) => {
@@ -339,17 +350,35 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout }) => {
 
           <div className="grid gap-4">
             {data.length === 0 && <p className="text-center text-gray-500 py-8">لا توجد بيانات هنا.</p>}
-            {data.map((item) => (
+            {data.map((item, index) => (
               <div key={item.id} className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex justify-between items-start gap-4">
+                {/* Reorder Controls */}
+                <div className="flex flex-col gap-1 justify-center self-center bg-gray-50 rounded-lg p-1">
+                   <button 
+                      onClick={() => handleMove(index, 'up')} 
+                      disabled={index === 0}
+                      className={`p-1 rounded hover:bg-white hover:shadow ${index === 0 ? 'text-gray-300' : 'text-gray-600'}`}
+                   >
+                     <ArrowUp size={16} />
+                   </button>
+                   <button 
+                      onClick={() => handleMove(index, 'down')} 
+                      disabled={index === data.length - 1}
+                      className={`p-1 rounded hover:bg-white hover:shadow ${index === data.length - 1 ? 'text-gray-300' : 'text-gray-600'}`}
+                   >
+                     <ArrowDown size={16} />
+                   </button>
+                </div>
+
                 <div className="flex-1">
                    <div className="flex items-center gap-2 mb-1">
-                      <span className="font-bold text-gray-400 text-xs">#{item.id}</span>
+                      <span className="font-bold text-gray-400 text-xs">#{index + 1}</span>
                       {item.level && <span className="text-xs bg-orange-100 text-orange-800 px-2 rounded">مستوى {item.level}</span>}
                       {item.type && <span className="text-xs bg-gray-100 px-2 rounded">{item.type}</span>}
                    </div>
                    
                    {/* Display main text based on type */}
-                   <p className="font-bold text-gray-800 text-lg mb-1">
+                   <p className="font-bold text-gray-800 text-lg mb-1 line-clamp-2">
                      {item.question || item.text || item.quote || item.title || item.answer}
                    </p>
                    
