@@ -119,9 +119,12 @@ const MathGame: React.FC<Props> = ({ updateScore, onComplete }) => {
              </div>
           </div>
 
-          <h2 className="text-xl font-bold text-center text-gray-800 mb-6" dir="ltr">
-             {currentQ.question} = ?
-          </h2>
+          <div className="text-center mb-8" dir="rtl">
+             <h2 className="text-xl md:text-2xl font-bold text-gray-800 leading-loose flex flex-wrap justify-center items-center gap-2">
+                <span className="leading-relaxed">{currentQ.question}</span>
+                <span className="text-orange-500 font-black whitespace-nowrap mx-2"> = ؟</span>
+             </h2>
+          </div>
           
           {!revealed && (
             <div className="flex gap-2 mb-6">
@@ -130,11 +133,11 @@ const MathGame: React.FC<Props> = ({ updateScore, onComplete }) => {
                 value={userAnswer}
                 onChange={(e) => setUserAnswer(e.target.value)}
                 placeholder="الإجابة"
-                className="flex-1 border-2 border-gray-200 rounded-lg p-2 text-center text-xl font-bold focus:border-orange-500 outline-none"
+                className="flex-1 border-2 border-gray-200 rounded-lg p-3 text-center text-xl font-bold focus:border-orange-500 outline-none"
                 />
                 <button 
                 onClick={checkAnswer}
-                className="bg-orange-500 text-white px-4 py-2 rounded-lg font-bold hover:bg-orange-600"
+                className="bg-orange-500 text-white px-6 py-2 rounded-lg font-bold hover:bg-orange-600 shadow-md transition-transform active:scale-95"
                 >
                 تحقق
                 </button>
@@ -142,22 +145,26 @@ const MathGame: React.FC<Props> = ({ updateScore, onComplete }) => {
           )}
 
           {revealed && (
-            <div className={`rounded-lg p-4 mb-6 border animate-fade-in ${isCorrect ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
+            <div className={`rounded-xl p-6 mb-6 border-2 animate-fade-in ${isCorrect ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
               <div className="text-center">
-                 <p className="text-gray-500 text-sm">{isCorrect ? 'إجابة صحيحة' : 'إجابة خاطئة'}</p>
-                 <p className={`text-3xl font-black ${isCorrect ? 'text-green-600' : 'text-red-600'}`}>{currentQ.answer}</p>
-                 <p className="text-xs text-gray-500 mt-2 dir-ltr">{currentQ.explanation}</p>
-                 <p className={`font-bold mt-2 ${isCorrect ? 'text-green-600' : 'text-red-600'}`}>
+                 <p className="text-gray-500 font-bold mb-2">{isCorrect ? 'إجابة صحيحة' : 'إجابة خاطئة'}</p>
+                 <p className={`text-4xl font-black mb-3 ${isCorrect ? 'text-green-600' : 'text-red-600'}`}>{currentQ.answer}</p>
+                 
+                 <div className="bg-white/50 rounded-lg p-2 inline-block">
+                    <p className="text-sm text-gray-600 font-mono font-bold" dir="ltr">{currentQ.explanation}</p>
+                 </div>
+                 
+                 <p className={`font-bold mt-3 text-lg ${isCorrect ? 'text-green-600' : 'text-red-600'}`}>
                    {isCorrect ? '+5 نقاط' : '-2 نقطة'}
                  </p>
               </div>
               
-              <div className="mt-4 pt-4 border-t border-gray-200">
+              <div className="mt-4 pt-2">
                 <button
                   onClick={handleNext}
-                  className="w-full mt-4 bg-gray-800 text-white py-2 rounded-lg font-bold"
+                  className="w-full bg-gray-800 text-white py-3 rounded-xl font-bold hover:bg-gray-900 shadow-lg flex items-center justify-center gap-2"
                 >
-                  التالي <Check size={16} className="inline" />
+                  التالي <Check size={20} />
                 </button>
               </div>
             </div>
