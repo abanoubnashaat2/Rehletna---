@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ContentManager, AuthManager } from '../utils/content';
-import { ArrowLeft, Plus, Edit, Trash2, Save, X, Brain, Calculator, BookOpen, Link2, MessageCircle, Camera, LogOut, ArrowUp, ArrowDown } from 'lucide-react';
+import { ArrowLeft, Plus, Edit, Trash2, Save, X, Brain, Calculator, BookOpen, Link2, MessageCircle, Camera, LogOut, GripVertical } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { playClick } from '../utils/sound';
 
@@ -14,6 +14,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout }) => {
   const [activeTab, setActiveTab] = useState<ContentType>('riddles');
   const [data, setData] = useState<any[]>([]);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   
   // Generic form state holder
   const [formData, setFormData] = useState<any>({});
@@ -55,15 +56,32 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout }) => {
     }
   };
 
-  const handleMove = (index: number, direction: 'up' | 'down') => {
-    playClick();
+  // Drag and Drop Handlers
+  const handleDragStart = (e: React.DragEvent<HTMLDivElement>, index: number) => {
+    setDraggedIndex(index);
+    // Required for Firefox
+    e.dataTransfer.effectAllowed = 'move';
+    // Transparent ghost image could be set here if needed, but default is usually okay
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>, index: number) => {
+    e.preventDefault(); // Necessary to allow dropping
+    if (draggedIndex === null || draggedIndex === index) return;
+
+    // Create a copy and swap items
     const newData = [...data];
-    if (direction === 'up' && index > 0) {
-      [newData[index], newData[index - 1]] = [newData[index - 1], newData[index]];
-    } else if (direction === 'down' && index < newData.length - 1) {
-      [newData[index], newData[index + 1]] = [newData[index + 1], newData[index]];
-    }
-    saveData(newData);
+    const draggedItem = newData[draggedIndex];
+    newData.splice(draggedIndex, 1);
+    newData.splice(index, 0, draggedItem);
+
+    setData(newData);
+    setDraggedIndex(index);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
+    saveData(data); // Commit final order to storage
+    playClick();
   };
 
   const handleEdit = (item: any) => {
@@ -351,23 +369,17 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout }) => {
           <div className="grid gap-4">
             {data.length === 0 && <p className="text-center text-gray-500 py-8">لا توجد بيانات هنا.</p>}
             {data.map((item, index) => (
-              <div key={item.id} className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex justify-between items-start gap-4">
-                {/* Reorder Controls */}
-                <div className="flex flex-col gap-1 justify-center self-center bg-gray-50 rounded-lg p-1">
-                   <button 
-                      onClick={() => handleMove(index, 'up')} 
-                      disabled={index === 0}
-                      className={`p-1 rounded hover:bg-white hover:shadow ${index === 0 ? 'text-gray-300' : 'text-gray-600'}`}
-                   >
-                     <ArrowUp size={16} />
-                   </button>
-                   <button 
-                      onClick={() => handleMove(index, 'down')} 
-                      disabled={index === data.length - 1}
-                      className={`p-1 rounded hover:bg-white hover:shadow ${index === data.length - 1 ? 'text-gray-300' : 'text-gray-600'}`}
-                   >
-                     <ArrowDown size={16} />
-                   </button>
+              <div 
+                key={item.id} 
+                draggable
+                onDragStart={(e) => handleDragStart(e, index)}
+                onDragOver={(e) => handleDragOver(e, index)}
+                onDragEnd={handleDragEnd}
+                className={`bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex justify-between items-start gap-4 transition-all ${draggedIndex === index ? 'opacity-50 border-blue-400 scale-[0.98]' : 'hover:shadow-md'}`}
+              >
+                {/* Drag Handle */}
+                <div className="flex flex-col justify-center self-center cursor-move text-gray-400 hover:text-gray-600 p-2 rounded hover:bg-gray-50">
+                   <GripVertical size={20} />
                 </div>
 
                 <div className="flex-1">
