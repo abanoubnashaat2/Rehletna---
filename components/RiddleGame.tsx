@@ -52,31 +52,33 @@ const RiddleGame: React.FC<Props> = ({ updateScore, onComplete }) => {
       .replace(/[^\w\s\u0621-\u064A]/g, '');
   };
 
-  const isAnswerCorrect = (user: string, correct: string) => {
+  const checkSingleMatch = (user: string, target: string) => {
     const normUser = normalizeArabic(user);
-    const normCorrect = normalizeArabic(correct);
-
+    const normTarget = normalizeArabic(target);
+    
     if (!normUser) return false;
+    if (normUser === normTarget) return true;
 
-    // 1. تطابق تام
-    if (normUser === normCorrect) return true;
-
-    // 2. تجاهل "ال" التعريف
     const stripAl = (s: string) => s.startsWith('ال') ? s.slice(2) : s;
     const userNoAl = stripAl(normUser);
-    const correctNoAl = stripAl(normCorrect);
+    const targetNoAl = stripAl(normTarget);
     
-    if (userNoAl === correctNoAl) return true;
+    if (userNoAl === targetNoAl) return true;
 
-    // 3. تطابق جزئي (الاحتواء)
-    // شرط: أن يكون النص المدخل 3 حروف على الأقل لتجنب التطابق العشوائي
     if (userNoAl.length >= 3) {
-       // الحالة أ: إجابة المستخدم جزء من الإجابة الصحيحة (مثال: كتب "موسى" والإجابة "موسى النبي")
-       if (normCorrect.includes(userNoAl)) return true;
-       
-       // الحالة ب: الإجابة الصحيحة جزء مما كتبه المستخدم (مثال: كتب "القديس توما" والإجابة "توما")
-       // نستخدم correctNoAl للتأكد من مطابقة جوهر الكلمة
-       if (normUser.includes(correctNoAl)) return true;
+       if (normTarget.includes(userNoAl)) return true;
+       if (normUser.includes(targetNoAl)) return true;
+    }
+    return false;
+  };
+
+  const isAnswerCorrect = (user: string, correct: string, accepted: string[] = []) => {
+    // Check main answer
+    if (checkSingleMatch(user, correct)) return true;
+    
+    // Check accepted variants
+    if (accepted && accepted.length > 0) {
+      return accepted.some(ans => checkSingleMatch(user, ans));
     }
     
     return false;
@@ -84,7 +86,7 @@ const RiddleGame: React.FC<Props> = ({ updateScore, onComplete }) => {
 
   const handleCheckAnswer = (e: React.FormEvent) => {
     e.preventDefault();
-    if (isAnswerCorrect(userAnswer, riddle.answer)) {
+    if (isAnswerCorrect(userAnswer, riddle.answer, riddle.acceptedAnswers)) {
       setFeedback('success');
       setShowAnswer(true);
       updateScore(5);

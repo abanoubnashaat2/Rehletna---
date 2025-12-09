@@ -3,6 +3,7 @@ export interface Riddle {
   type?: 'text' | 'emoji'; // Added type
   question: string;
   answer: string;
+  acceptedAnswers?: string[]; // Flexible answers
   hint: string;
 }
 
