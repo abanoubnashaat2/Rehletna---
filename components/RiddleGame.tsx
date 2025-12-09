@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { RIDDLES } from '../constants';
+import { ContentManager } from '../utils/content'; // Changed import
 import { HelpCircle, Send, ArrowLeft, CheckCircle, AlertCircle, Smile } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { playClick, playSuccess, playError, playCelebration } from '../utils/sound';
@@ -10,6 +10,9 @@ interface Props {
 }
 
 const RiddleGame: React.FC<Props> = ({ updateScore, onComplete }) => {
+  // Load Riddles dynamically
+  const [riddles, setRiddles] = useState(() => ContentManager.getRiddles());
+
   // Initialize from storage or 0
   const [currentRiddleIndex, setCurrentRiddleIndex] = useState(() => {
     const saved = localStorage.getItem('rehletna_riddle_index');
@@ -30,8 +33,8 @@ const RiddleGame: React.FC<Props> = ({ updateScore, onComplete }) => {
     localStorage.setItem('rehletna_riddle_index', currentRiddleIndex.toString());
   }, [currentRiddleIndex]);
 
-  const riddle = RIDDLES[currentRiddleIndex];
-  const isFinished = currentRiddleIndex >= RIDDLES.length;
+  const riddle = riddles[currentRiddleIndex]; // Use state riddles
+  const isFinished = currentRiddleIndex >= riddles.length;
 
   // Reset state when question changes
   useEffect(() => {
@@ -110,7 +113,7 @@ const RiddleGame: React.FC<Props> = ({ updateScore, onComplete }) => {
     const nextIndex = currentRiddleIndex + 1;
     setCurrentRiddleIndex(nextIndex);
     
-    if (nextIndex >= RIDDLES.length) {
+    if (nextIndex >= riddles.length) {
       playCelebration();
       onComplete();
     }
@@ -161,7 +164,7 @@ const RiddleGame: React.FC<Props> = ({ updateScore, onComplete }) => {
         <div className="flex justify-between items-center mb-6 border-b pb-4">
           <div className={`px-3 py-1 rounded-lg text-sm font-bold flex items-center gap-2 ${riddle.type === 'emoji' ? 'bg-yellow-100 text-yellow-800' : 'bg-purple-100 text-purple-800'}`}>
              {riddle.type === 'emoji' ? <Smile size={16} /> : null}
-             لغز {currentRiddleIndex + 1} / {RIDDLES.length}
+             لغز {currentRiddleIndex + 1} / {riddles.length}
           </div>
           <div className="flex items-center gap-2 text-sm text-gray-500">
              <span>صحيح: <span className="text-green-600 font-bold">+5</span></span>

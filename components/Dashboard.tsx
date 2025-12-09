@@ -1,18 +1,21 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Brain, Camera, BookOpen, RefreshCw, Calculator, Award, Link2, MessageCircle, Lock } from 'lucide-react';
+import { Brain, Camera, BookOpen, RefreshCw, Calculator, Award, Link2, MessageCircle, Lock, Shield } from 'lucide-react';
 
 interface DashboardProps {
   score: number;
   unlockedStage: number;
+  userName: string;
+  isAdmin: boolean;
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ score, unlockedStage }) => {
+const Dashboard: React.FC<DashboardProps> = ({ score, unlockedStage, userName, isAdmin }) => {
 
   const DashboardItem = ({ to, icon: Icon, title, color, stageIdx, span = 1 }: any) => {
     // Stage 6 (Wheel) is exception, always unlocked
-    const isLocked = stageIdx !== 6 && stageIdx > unlockedStage;
-    const isCompleted = stageIdx < unlockedStage;
+    // If isAdmin is true, ignore unlockedStage logic
+    const isLocked = !isAdmin && stageIdx !== 6 && stageIdx > unlockedStage;
+    const isCompleted = !isAdmin && stageIdx < unlockedStage;
 
     if (isLocked) {
       return (
@@ -50,7 +53,14 @@ const Dashboard: React.FC<DashboardProps> = ({ score, unlockedStage }) => {
       <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden">
         <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-10 rounded-full -mr-10 -mt-10"></div>
         <div className="relative z-10">
-          <h1 className="text-3xl font-bold mb-2">رحلتنا</h1>
+          <div className="flex justify-between items-start mb-2">
+             <h1 className="text-2xl font-bold">مرحباً {userName} 👋</h1>
+             {isAdmin && (
+               <Link to="/admin" className="bg-white/20 p-2 rounded-lg hover:bg-white/30 backdrop-blur-sm flex items-center gap-1 font-bold text-sm">
+                 <Shield size={16} /> لوحة التحكم
+               </Link>
+             )}
+          </div>
           <p className="opacity-90">جاوب واجمع نقاط وافتح المراحل!</p>
           
           <div className="mt-6 bg-white/20 backdrop-blur-sm rounded-lg p-3 flex items-center justify-between">

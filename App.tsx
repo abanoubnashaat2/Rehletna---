@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { HashRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
-import { Home, Camera, BookOpen, Brain, RefreshCw, Trophy, Menu, X, Settings, Link2, MessageCircle, Lock } from 'lucide-react';
+import { HashRouter, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
+import { Home, Camera, BookOpen, Brain, RefreshCw, Trophy, Menu, X, Settings, Link2, MessageCircle, Lock, LogOut, Shield } from 'lucide-react';
 import Dashboard from './components/Dashboard';
 import RiddleGame from './components/RiddleGame';
 import PhotoHunt from './components/PhotoHunt';
@@ -9,9 +9,15 @@ import MathGame from './components/MathGame';
 import SpinWheel from './components/SpinWheel';
 import LinkGame from './components/LinkGame';
 import WhoSaidItGame from './components/WhoSaidItGame';
+import LoginPage from './components/LoginPage';
+import AdminPanel from './components/AdminPanel';
+import { AuthManager } from './utils/content';
 import { playClick } from './utils/sound';
 
 const App: React.FC = () => {
+  // Auth State
+  const [user, setUser] = useState<{name: string, isAdmin: boolean} | null>(AuthManager.getUser());
+
   // Global State for Single Player Score
   const [score, setScore] = useState<number>(() => {
     const saved = localStorage.getItem('rehletna_score');
@@ -19,7 +25,6 @@ const App: React.FC = () => {
   });
 
   // Global State for Unlocked Stage (0 to 6)
-  // 0: Riddles, 1: Verses, 2: Links, 3: Quotes, 4: Math, 5: PhotoHunt, 6: Wheel
   const [unlockedStage, setUnlockedStage] = useState<number>(() => {
     const saved = localStorage.getItem('rehletna_stage');
     return saved ? parseInt(saved, 10) : 0;
@@ -48,13 +53,23 @@ const App: React.FC = () => {
     }
   };
 
+  const handleLogout = () => {
+    AuthManager.logout();
+    setUser(null);
+  };
+
   const Navigation = () => {
     const location = useLocation();
     const isActive = (path: string) => location.pathname === path ? 'text-blue-600 bg-blue-50' : 'text-gray-600 hover:bg-gray-50';
     
-    // Helper to check if link is locked for sidebar
-    // Stage 6 (Wheel) is always unlocked now
-    const isLocked = (stageIndex: number) => stageIndex !== 6 && stageIndex > unlockedStage;
+    // Hide nav on login page or admin panel
+    if (location.pathname === '/login' || location.pathname === '/admin') return null;
+
+    // Check lock status, but override if admin
+    const isLocked = (stageIndex: number) => {
+      if (user?.isAdmin) return false;
+      return stageIndex !== 6 && stageIndex > unlockedStage;
+    };
 
     const NavItem = ({ path, icon: Icon, label, stageIdx }: { path: string, icon: any, label: string, stageIdx: number }) => {
       if (isLocked(stageIdx)) {
@@ -103,100 +118,134 @@ const App: React.FC = () => {
            <NavItem path="/math" icon={Settings} label="حسبة برما" stageIdx={4} />
            <NavItem path="/photohunt" icon={Camera} label="الأحكام" stageIdx={5} />
            <NavItem path="/wheel" icon={RefreshCw} label="عجلة الحظ" stageIdx={6} />
+           
+           {user?.isAdmin && (
+             <Link to="/admin" className="flex items-center space-x-3 space-x-reverse p-2 rounded-lg text-purple-600 bg-purple-50 mt-4">
+               <Shield size={20} /> <span>لوحة المشرف</span>
+             </Link>
+           )}
 
            <div className="mt-8 border-t pt-4">
-             <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 px-2">نقاطي</div>
-             <div className="flex items-center justify-between px-2 py-1 bg-blue-50 rounded-lg">
-                <span className="text-sm font-medium text-gray-600">المجموع</span>
-                <span className="font-bold text-blue-600 text-lg">{score}</span>
-             </div>
+             <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 px-2">الحساب</div>
+             <div className="px-2 mb-2 font-bold text-gray-700">{user?.name}</div>
+             <button onClick={handleLogout} className="flex items-center space-x-3 space-x-reverse p-2 rounded-lg text-red-500 w-full hover:bg-red-50">
+               <LogOut size={20} /> <span>خروج</span>
+             </button>
            </div>
         </div>
       </div>
     );
   };
 
-  const MobileMenu = () => (
-    <div className={`fixed inset-0 bg-black/50 z-50 transition-opacity ${isSidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} onClick={() => setIsSidebarOpen(false)}>
-      <div 
-        className={`absolute left-0 top-0 bottom-0 w-64 bg-white shadow-xl transform transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
-        onClick={e => e.stopPropagation()}
-      >
-        <div className="p-4 flex justify-between items-center border-b">
-          <h2 className="font-bold text-xl text-blue-800">رحلتنا</h2>
-          <button onClick={() => { setIsSidebarOpen(false); playClick(); }}><X size={24} /></button>
-        </div>
-        <div className="p-4 space-y-4">
-          <p className="text-sm text-gray-400 mb-2">أكمل المراحل لفتح التالية</p>
-          {/* We only show links that are unlocked or the immediate next one */}
-          <Link to="/riddles" onClick={() => { setIsSidebarOpen(false); playClick(); }} className="flex items-center space-x-3 space-x-reverse text-gray-700 p-2 hover:bg-gray-100 rounded">
-            <Brain className="text-purple-500" /> <span>الفوازير والألغاز</span>
-          </Link>
-          
-          {unlockedStage >= 1 && <Link to="/verses" onClick={() => { setIsSidebarOpen(false); playClick(); }} className="flex items-center space-x-3 space-x-reverse text-gray-700 p-2 hover:bg-gray-100 rounded">
-            <BookOpen className="text-green-500" /> <span>مسابقات الآيات</span>
-          </Link>}
-          
-          {unlockedStage >= 2 && <Link to="/links" onClick={() => { setIsSidebarOpen(false); playClick(); }} className="flex items-center space-x-3 space-x-reverse text-gray-700 p-2 hover:bg-gray-100 rounded">
-            <Link2 className="text-cyan-500" /> <span>الرابط العجيب</span>
-          </Link>}
+  const MobileMenu = () => {
+    // If admin, everything is unlocked (0 needed for logic)
+    // If user, check stage
+    const isLocked = (stage: number) => !user?.isAdmin && stage !== 6 && stage > unlockedStage;
 
-          {unlockedStage >= 3 && <Link to="/quotes" onClick={() => { setIsSidebarOpen(false); playClick(); }} className="flex items-center space-x-3 space-x-reverse text-gray-700 p-2 hover:bg-gray-100 rounded">
-            <MessageCircle className="text-indigo-500" /> <span>من القائل؟</span>
-          </Link>}
+    return (
+      <div className={`fixed inset-0 bg-black/50 z-50 transition-opacity ${isSidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} onClick={() => setIsSidebarOpen(false)}>
+        <div 
+          className={`absolute left-0 top-0 bottom-0 w-64 bg-white shadow-xl transform transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
+          onClick={e => e.stopPropagation()}
+        >
+          <div className="p-4 flex justify-between items-center border-b">
+            <div>
+               <h2 className="font-bold text-xl text-blue-800">رحلتنا</h2>
+               <p className="text-xs text-gray-500">مرحباً, {user?.name}</p>
+            </div>
+            <button onClick={() => { setIsSidebarOpen(false); playClick(); }}><X size={24} /></button>
+          </div>
+          <div className="p-4 space-y-4">
+            {user?.isAdmin && (
+               <Link to="/admin" onClick={() => { setIsSidebarOpen(false); playClick(); }} className="flex items-center space-x-3 space-x-reverse text-purple-700 bg-purple-50 p-2 rounded border border-purple-100 mb-4">
+                 <Shield size={20} /> <span>لوحة المشرف</span>
+               </Link>
+            )}
 
-          {unlockedStage >= 4 && <Link to="/math" onClick={() => { setIsSidebarOpen(false); playClick(); }} className="flex items-center space-x-3 space-x-reverse text-gray-700 p-2 hover:bg-gray-100 rounded">
-            <Settings className="text-orange-500" /> <span>حسبة برما</span>
-          </Link>}
+            <p className="text-sm text-gray-400 mb-2">أكمل المراحل لفتح التالية</p>
+            
+            <Link to="/riddles" onClick={() => { setIsSidebarOpen(false); playClick(); }} className="flex items-center space-x-3 space-x-reverse text-gray-700 p-2 hover:bg-gray-100 rounded">
+              <Brain className="text-purple-500" /> <span>الفوازير والألغاز</span>
+            </Link>
+            
+            {!isLocked(1) && <Link to="/verses" onClick={() => { setIsSidebarOpen(false); playClick(); }} className="flex items-center space-x-3 space-x-reverse text-gray-700 p-2 hover:bg-gray-100 rounded">
+              <BookOpen className="text-green-500" /> <span>مسابقات الآيات</span>
+            </Link>}
+            
+            {!isLocked(2) && <Link to="/links" onClick={() => { setIsSidebarOpen(false); playClick(); }} className="flex items-center space-x-3 space-x-reverse text-gray-700 p-2 hover:bg-gray-100 rounded">
+              <Link2 className="text-cyan-500" /> <span>الرابط العجيب</span>
+            </Link>}
 
-          {unlockedStage >= 5 && <Link to="/photohunt" onClick={() => { setIsSidebarOpen(false); playClick(); }} className="flex items-center space-x-3 space-x-reverse text-gray-700 p-2 hover:bg-gray-100 rounded">
-            <Camera className="text-blue-500" /> <span>أحكام التصوير</span>
-          </Link>}
+            {!isLocked(3) && <Link to="/quotes" onClick={() => { setIsSidebarOpen(false); playClick(); }} className="flex items-center space-x-3 space-x-reverse text-gray-700 p-2 hover:bg-gray-100 rounded">
+              <MessageCircle className="text-indigo-500" /> <span>من القائل؟</span>
+            </Link>}
 
-          {/* Wheel is always open */}
-          <Link to="/wheel" onClick={() => { setIsSidebarOpen(false); playClick(); }} className="flex items-center space-x-3 space-x-reverse text-gray-700 p-2 hover:bg-gray-100 rounded">
-            <RefreshCw className="text-pink-500" /> <span>عجلة الحظ</span>
-          </Link>
+            {!isLocked(4) && <Link to="/math" onClick={() => { setIsSidebarOpen(false); playClick(); }} className="flex items-center space-x-3 space-x-reverse text-gray-700 p-2 hover:bg-gray-100 rounded">
+              <Settings className="text-orange-500" /> <span>حسبة برما</span>
+            </Link>}
+
+            {!isLocked(5) && <Link to="/photohunt" onClick={() => { setIsSidebarOpen(false); playClick(); }} className="flex items-center space-x-3 space-x-reverse text-gray-700 p-2 hover:bg-gray-100 rounded">
+              <Camera className="text-blue-500" /> <span>أحكام التصوير</span>
+            </Link>}
+
+            {/* Wheel is always open */}
+            <Link to="/wheel" onClick={() => { setIsSidebarOpen(false); playClick(); }} className="flex items-center space-x-3 space-x-reverse text-gray-700 p-2 hover:bg-gray-100 rounded">
+              <RefreshCw className="text-pink-500" /> <span>عجلة الحظ</span>
+            </Link>
+
+            <div className="border-t pt-4 mt-4">
+               <button onClick={handleLogout} className="flex items-center space-x-3 space-x-reverse text-red-600 p-2 hover:bg-red-50 rounded w-full">
+                 <LogOut size={20} /> <span>تسجيل خروج</span>
+               </button>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <HashRouter>
-      <div className="flex flex-col md:flex-row min-h-screen bg-gray-50">
-        <MobileMenu />
-        
-        {/* Main Content Area */}
-        <main className="flex-1 pb-20 md:pb-0 overflow-y-auto h-screen">
-          <div className="max-w-4xl mx-auto w-full">
-            <header className="bg-white shadow-sm p-3 sticky top-0 z-30 flex justify-between items-center md:hidden">
-               <div className="flex items-center gap-2">
-                 <h1 className="font-black text-xl text-transparent bg-clip-text bg-gradient-to-l from-blue-600 to-purple-600">رحلتنا</h1>
-               </div>
-               
-               {/* Live Score Strip */}
-               <div className="flex gap-2 bg-gray-50 px-4 py-1.5 rounded-full border border-gray-100 items-center">
-                 <Trophy size={16} className="text-yellow-500" />
-                 <span className="text-sm font-bold text-gray-700">{score} نقطة</span>
-               </div>
-            </header>
+      {!user ? (
+        <LoginPage onLogin={() => setUser(AuthManager.getUser())} />
+      ) : (
+        <div className="flex flex-col md:flex-row min-h-screen bg-gray-50">
+          <MobileMenu />
+          
+          {/* Main Content Area */}
+          <main className="flex-1 pb-20 md:pb-0 overflow-y-auto h-screen">
+            <div className="max-w-4xl mx-auto w-full">
+              <header className="bg-white shadow-sm p-3 sticky top-0 z-30 flex justify-between items-center md:hidden">
+                 <div className="flex items-center gap-2">
+                   <h1 className="font-black text-xl text-transparent bg-clip-text bg-gradient-to-l from-blue-600 to-purple-600">رحلتنا</h1>
+                 </div>
+                 
+                 {/* Live Score Strip */}
+                 <div className="flex gap-2 bg-gray-50 px-4 py-1.5 rounded-full border border-gray-100 items-center">
+                   <Trophy size={16} className="text-yellow-500" />
+                   <span className="text-sm font-bold text-gray-700">{score}</span>
+                 </div>
+              </header>
 
-            <Routes>
-              <Route path="/" element={<Dashboard score={score} unlockedStage={unlockedStage} />} />
-              <Route path="/riddles" element={<RiddleGame updateScore={updateScore} onComplete={() => completeStage(0)} />} />
-              <Route path="/verses" element={<VerseGame updateScore={updateScore} onComplete={() => completeStage(1)} />} />
-              <Route path="/links" element={<LinkGame updateScore={updateScore} onComplete={() => completeStage(2)} />} />
-              <Route path="/quotes" element={<WhoSaidItGame updateScore={updateScore} onComplete={() => completeStage(3)} />} />
-              <Route path="/math" element={<MathGame updateScore={updateScore} onComplete={() => completeStage(4)} />} />
-              <Route path="/photohunt" element={<PhotoHunt updateScore={updateScore} onComplete={() => completeStage(5)} />} />
-              <Route path="/wheel" element={<SpinWheel updateScore={updateScore} />} />
-            </Routes>
-          </div>
-        </main>
-        
-        <Navigation />
-      </div>
+              <Routes>
+                <Route path="/" element={<Dashboard score={score} unlockedStage={unlockedStage} userName={user.name} isAdmin={user.isAdmin} />} />
+                <Route path="/riddles" element={<RiddleGame updateScore={updateScore} onComplete={() => completeStage(0)} />} />
+                <Route path="/verses" element={<VerseGame updateScore={updateScore} onComplete={() => completeStage(1)} />} />
+                <Route path="/links" element={<LinkGame updateScore={updateScore} onComplete={() => completeStage(2)} />} />
+                <Route path="/quotes" element={<WhoSaidItGame updateScore={updateScore} onComplete={() => completeStage(3)} />} />
+                <Route path="/math" element={<MathGame updateScore={updateScore} onComplete={() => completeStage(4)} />} />
+                <Route path="/photohunt" element={<PhotoHunt updateScore={updateScore} onComplete={() => completeStage(5)} />} />
+                <Route path="/wheel" element={<SpinWheel updateScore={updateScore} />} />
+                
+                {/* Admin Route */}
+                <Route path="/admin" element={user.isAdmin ? <AdminPanel onLogout={handleLogout} /> : <Navigate to="/" />} />
+              </Routes>
+            </div>
+          </main>
+          
+          <Navigation />
+        </div>
+      )}
     </HashRouter>
   );
 };
